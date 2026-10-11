@@ -1,0 +1,41 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ms-gateway
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+
+            - id: ms-securityservice
+              uri: lb://ms-securityservice
+              predicates:
+                - Path=/auth/**
+              filters:
+                - SetRequestHeader=X-Gateway-Secret, ${gateway.internal-secret}
+
+            - id: ms-patron
+              uri: lb://ms-patron
+              predicates:
+                - Path=/ciudadanos/**,/padron/**
+              filters:
+                - SetRequestHeader=X-Gateway-Secret, ${gateway.internal-secret}
+
+            - id: ms-votacion
+              uri: lb://ms-votacion
+              predicates:
+                - Path=/elecciones/**,/candidatos/**,/votos/**
+              filters:
+                - SetRequestHeader=X-Gateway-Secret, ${gateway.internal-secret}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+  instance:
+    lease-renewal-interval-in-seconds: 10
