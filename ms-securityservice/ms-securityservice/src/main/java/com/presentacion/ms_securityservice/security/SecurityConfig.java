@@ -70,8 +70,6 @@ public class SecurityConfig {
 
                 .requestMatchers(
                     "/auth/login",
-                    "/actuator/health",
-                    "/h2-console/**",
                     "/swagger-ui/**",
                     "/v3/api-docs/**"
                 ).permitAll()
@@ -85,10 +83,6 @@ public class SecurityConfig {
                         jwtAuthenticationConverter()
                     )
                 )
-            )
-
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.disable())
             );
 
         return http.build();
