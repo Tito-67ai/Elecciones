@@ -32,6 +32,30 @@ spring:
               filters:
                 - SetRequestHeader=X-Gateway-Secret, ${gateway.internal-secret}
 
+            - id: swagger-seguridad
+              uri: lb://ms-securityservice
+              predicates:
+                - Path=/seguridad/**
+              filters:
+                - StripPrefix=1
+                - SetRequestHeader=X-Gateway-Secret, ${gateway.internal-secret}
+
+            - id: swagger-patron
+              uri: lb://ms-patron
+              predicates:
+                - Path=/patron/**
+              filters:
+                - StripPrefix=1
+                - SetRequestHeader=X-Gateway-Secret, ${gateway.internal-secret}
+
+            - id: swagger-votacion
+              uri: lb://ms-votacion
+              predicates:
+                - Path=/votacion/**
+              filters:
+                - StripPrefix=1
+                - SetRequestHeader=X-Gateway-Secret, ${gateway.internal-secret}
+
 eureka:
   client:
     service-url:
@@ -39,3 +63,14 @@ eureka:
 
   instance:
     lease-renewal-interval-in-seconds: 10
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Seguridad
+        url: /seguridad/v3/api-docs
+      - name: Patron
+        url: /patron/v3/api-docs
+      - name: Votacion
+        url: /votacion/v3/api-docs
