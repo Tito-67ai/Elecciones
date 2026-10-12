@@ -1,2 +1,6 @@
 gateway:
   internal-secret: "EleccionesClaveInternaGateway2026"
+
+jwt:
+  secret: "EleccionesClaveJwtSuperSecreta2026ParaFirmaHS256"
+  expiration: 3600
