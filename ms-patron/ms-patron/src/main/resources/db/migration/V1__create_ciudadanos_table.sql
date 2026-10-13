@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS ciudadanos (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    dni VARCHAR(20) NOT NULL UNIQUE,
+    email VARCHAR(150),
+    direccion VARCHAR(255),
+    ya_voto BOOLEAN NOT NULL DEFAULT FALSE,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_ciudadanos_activo ON ciudadanos(activo);
+CREATE INDEX idx_ciudadanos_dni ON ciudadanos(dni);
