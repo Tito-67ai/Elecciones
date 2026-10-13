@@ -1,8 +1,8 @@
 package com.app.votacion.controller;
 
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +40,7 @@ public class VotoController {
         nuevo.setDniCiudadano(dto.dniCiudadano());
 
         Voto registrado = votoService.registrarVoto(nuevo);
-        return ResponseEntity.status(HttpStatus.CREATED).body(VotoSalidaDTO.from(registrado));
+        return ResponseEntity.status(201).body(VotoSalidaDTO.from(registrado));
     }
 
     @GetMapping
@@ -72,6 +72,20 @@ public class VotoController {
     public ResponseEntity<Long> contarPorCandidato(@PathVariable Long candidatoId) {
 
         return ResponseEntity.ok(votoService.contarPorCandidato(candidatoId));
+    }
+
+    @GetMapping("/eleccion/{eleccionId}/conteo")
+    @PreAuthorize("hasAnyRole('ADMIN','ROOT','AUTORIDAD_MESA','FISCAL')")
+    public ResponseEntity<Map<Long, Long>> conteoPorCandidatoEnEleccion(@PathVariable Long eleccionId) {
+
+        return ResponseEntity.ok(votoService.conteoPorCandidatoEnEleccion(eleccionId));
+    }
+
+    @GetMapping("/eleccion/{eleccionId}/acta")
+    @PreAuthorize("hasAnyRole('ADMIN','ROOT','AUTORIDAD_MESA','FISCAL')")
+    public ResponseEntity<Map<String, Object>> actaEleccion(@PathVariable Long eleccionId) {
+
+        return ResponseEntity.ok(votoService.actaEleccion(eleccionId));
     }
 }
 

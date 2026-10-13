@@ -2,6 +2,8 @@ package com.app.votacion.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import com.app.votacion.dto.CiudadanoDTO;
 import com.app.votacion.exception.RecursoNoEncontradoException;
 import com.app.votacion.exception.VotoDuplicadoException;
 import com.app.votacion.model.Candidato;
+import com.app.votacion.model.Eleccion;
 import com.app.votacion.model.Voto;
 import com.app.votacion.repository.CandidatoRepository;
 import com.app.votacion.repository.EleccionRepository;
@@ -77,6 +80,51 @@ public class VotoServiceImpl implements VotoService {
     @Override
     public long contarPorCandidato(Long candidatoId) {
         return votoRepository.countByCandidatoId(candidatoId);
+    }
+
+    @Override
+    public Map<Long, Long> conteoPorCandidatoEnEleccion(Long eleccionId) {
+
+        validarEleccion(eleccionId);
+
+        List<Candidato> candidatos = candidatoRepository.findByEleccionIdAndActivoTrue(eleccionId);
+
+        return candidatos.stream()
+                .collect(Collectors.toMap(
+                        Candidato::getId,
+                        c -> votoRepository.countByCandidatoId(c.getId())
+                ));
+    }
+
+    @Override
+    public Map<String, Object> actaEleccion(Long eleccionId) {
+
+        Eleccion eleccion = eleccionRepository.findById(eleccionId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Eleccion no encontrada: " + eleccionId));
+
+        Map<Long, Long> conteo = conteoPorCandidatoEnEleccion(eleccionId);
+
+        List<Candidato> candidatos = candidatoRepository.findByEleccionIdAndActivoTrue(eleccionId);
+        long totalVotos = conteo.values().stream().mapToLong(Long::longValue).sum();
+        long totalHabilitados = 0; // Se podria obtener de ms-patron si se expone
+
+        return Map.of(
+                "eleccionId", eleccion.getId(),
+                "nombreEleccion", eleccion.getNombre(),
+                "fecha", eleccion.getFecha(),
+                "activa", eleccion.isActiva(),
+                "totalVotos", totalVotos,
+                "totalHabilitados", totalHabilitados,
+                "participacion", totalHabilitados > 0 ? (double) totalVotos / totalHabilitados * 100 : 0.0,
+                "resultados", candidatos.stream()
+                        .map(c -> Map.of(
+                                "candidatoId", c.getId(),
+                                "nombre", c.getNombre() + " " + c.getApellido(),
+                                "partido", c.getPartido(),
+                                "votos", conteo.getOrDefault(c.getId(), 0L)
+                        ))
+                        .toList()
+        );
     }
 
     private void validarEleccion(Long eleccionId) {

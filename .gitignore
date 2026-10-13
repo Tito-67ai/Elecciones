@@ -41,3 +41,9 @@ logs/
 *.tmp
 *.swp
 *.bak
+
+# Secrets / Environment
+.env
+.env.local
+*.pem
+*.key

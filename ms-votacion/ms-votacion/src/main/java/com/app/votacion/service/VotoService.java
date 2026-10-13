@@ -1,6 +1,7 @@
 package com.app.votacion.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.app.votacion.model.Voto;
 
@@ -13,5 +14,9 @@ public interface VotoService {
     List<Voto> listarPorEleccion(Long eleccionId);
 
     long contarPorCandidato(Long candidatoId);
+
+    Map<Long, Long> conteoPorCandidatoEnEleccion(Long eleccionId);
+
+    Map<String, Object> actaEleccion(Long eleccionId);
 }
 
