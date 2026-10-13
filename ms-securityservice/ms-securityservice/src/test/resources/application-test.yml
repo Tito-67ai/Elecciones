@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:tc:mysql:8.0:///securitydb
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: test
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+eureka:
+  client:
+    enabled: false
