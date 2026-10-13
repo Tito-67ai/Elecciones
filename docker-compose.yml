@@ -1,0 +1,124 @@
+services:
+
+  registry:
+    build:
+      context: ./ms-registry/ms-registry
+      dockerfile: Dockerfile
+    container_name: registry
+    ports:
+      - "8761:8761"
+    networks:
+      - elecciones-network
+
+  configserver:
+    build:
+      context: ./ms-config-server/ms-config-server
+      dockerfile: Dockerfile
+    container_name: configserver
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      registry:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/8888'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 15s
+    networks:
+      - elecciones-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - elecciones-network
+
+  securityservice:
+    build:
+      context: ./ms-securityservice/ms-securityservice
+      dockerfile: Dockerfile
+    container_name: securityservice
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      registry:
+        condition: service_started
+      configserver:
+        condition: service_healthy
+    networks:
+      - elecciones-network
+
+  gateway:
+    build:
+      context: ./ms-gateway/ms-gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      registry:
+        condition: service_started
+      configserver:
+        condition: service_healthy
+      securityservice:
+        condition: service_started
+    networks:
+      - elecciones-network
+
+  patron:
+    build:
+      context: ./ms-patron/ms-patron
+      dockerfile: Dockerfile
+    container_name: patron
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      registry:
+        condition: service_started
+      configserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - elecciones-network
+
+  votacion:
+    build:
+      context: ./ms-votacion/ms-votacion
+      dockerfile: Dockerfile
+    container_name: votacion
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      registry:
+        condition: service_started
+      configserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      patron:
+        condition: service_started
+    networks:
+      - elecciones-network
+
+networks:
+  elecciones-network:
+    driver: bridge
