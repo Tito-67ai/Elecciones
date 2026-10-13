@@ -71,7 +71,7 @@ public class CiudadanoController {
     }
 
     @GetMapping("/dni/{dni}")
-    @PreAuthorize("hasAnyRole('ADMIN','ROOT','AUTORIDAD_MESA','FISCAL')")
+    @PreAuthorize("hasAnyRole('ADMIN','ROOT','AUTORIDAD_MESA','FISCAL','ELECTOR')")
     public ResponseEntity<CiudadanoSalidaDTO> obtenerPorDni(@PathVariable String dni) {
 
         return ciudadanoService.obtenerPorDni(dni)
