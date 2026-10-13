@@ -1,0 +1,32 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: ms-patron
+
+  datasource:
+    url: jdbc:h2:mem:patrondb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://registry:8761/eureka/
+
+  instance:
+    lease-renewal-interval-in-seconds: 10
