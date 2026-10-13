@@ -1,0 +1,77 @@
+package com.app.votacion.controller;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.app.votacion.dto.VotoAltaDTO;
+import com.app.votacion.dto.VotoSalidaDTO;
+import com.app.votacion.model.Voto;
+import com.app.votacion.service.VotoService;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
+@RestController
+@RequestMapping("/votos")
+@SecurityRequirement(name = "bearerAuth")
+public class VotoController {
+
+    private final VotoService votoService;
+
+    public VotoController(VotoService votoService) {
+        this.votoService = votoService;
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ELECTOR','AUTORIDAD_MESA')")
+    public ResponseEntity<VotoSalidaDTO> registrarVoto(@RequestBody VotoAltaDTO dto) {
+
+        Voto nuevo = new Voto();
+        nuevo.setEleccionId(dto.eleccionId());
+        nuevo.setCandidatoId(dto.candidatoId());
+        nuevo.setDniCiudadano(dto.dniCiudadano());
+
+        Voto registrado = votoService.registrarVoto(nuevo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(VotoSalidaDTO.from(registrado));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','ROOT','AUTORIDAD_MESA','FISCAL')")
+    public ResponseEntity<List<VotoSalidaDTO>> listarVotos() {
+
+        List<VotoSalidaDTO> votos = votoService.listarVotos()
+                .stream()
+                .map(VotoSalidaDTO::from)
+                .toList();
+
+        return ResponseEntity.ok(votos);
+    }
+
+    @GetMapping("/eleccion/{eleccionId}")
+    @PreAuthorize("hasAnyRole('ADMIN','ROOT','AUTORIDAD_MESA','FISCAL')")
+    public ResponseEntity<List<VotoSalidaDTO>> listarPorEleccion(@PathVariable Long eleccionId) {
+
+        List<VotoSalidaDTO> votos = votoService.listarPorEleccion(eleccionId)
+                .stream()
+                .map(VotoSalidaDTO::from)
+                .toList();
+
+        return ResponseEntity.ok(votos);
+    }
+
+    @GetMapping("/resultado/{candidatoId}")
+    @PreAuthorize("hasAnyRole('ADMIN','ROOT','AUTORIDAD_MESA','FISCAL')")
+    public ResponseEntity<Long> contarPorCandidato(@PathVariable Long candidatoId) {
+
+        return ResponseEntity.ok(votoService.contarPorCandidato(candidatoId));
+    }
+}
+

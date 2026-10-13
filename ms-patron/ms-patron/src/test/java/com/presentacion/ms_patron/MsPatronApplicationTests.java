@@ -1,4 +1,4 @@
-package com.presentacion.ms_patron;
+package com.app.patron;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,3 +11,5 @@ class MsPatronApplicationTests {
 	}
 
 }
+
+

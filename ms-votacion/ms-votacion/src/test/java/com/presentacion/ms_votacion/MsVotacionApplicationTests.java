@@ -1,4 +1,4 @@
-package com.presentacion.ms_votacion;
+package com.app.votacion;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,3 +11,5 @@ class MsVotacionApplicationTests {
 	}
 
 }
+
+
