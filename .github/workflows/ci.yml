@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [infra-base, backend, main]
+    branches: [backend, main]
   pull_request:
     branches: [backend, main]
 
@@ -65,15 +65,30 @@ jobs:
 
       - name: Build all modules
         run: |
-          mvn -B clean compile -DskipTests
+          set -e
+          for pom in ms-*/ms-*/pom.xml; do
+            echo "::group::Compile $pom"
+            mvn -B -f "$pom" clean compile -DskipTests
+            echo "::endgroup::"
+          done
 
       - name: Run unit tests
         run: |
-          mvn -B test
+          set -e
+          for pom in ms-*/ms-*/pom.xml; do
+            echo "::group::Tests $pom"
+            mvn -B -f "$pom" test
+            echo "::endgroup::"
+          done
 
       - name: Run integration tests
         run: |
-          mvn -B verify -DskipITs=false
+          set -e
+          for pom in ms-*/ms-*/pom.xml; do
+            echo "::group::Verify $pom"
+            mvn -B -f "$pom" verify -DskipITs=false
+            echo "::endgroup::"
+          done
 
       - name: Upload test reports
         if: always()
@@ -86,9 +101,12 @@ jobs:
 
   docker-build:
     needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/infra-base'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -106,7 +124,7 @@ jobs:
 
       - name: Build and push images
         run: |
-          IMAGE_TAG="${{ github.sha }}::8"
+          IMAGE_TAG="${GITHUB_SHA::8}"
           SERVICES="ms-registry ms-config-server ms-gateway ms-securityservice ms-patron ms-votacion"
           for svc in $SERVICES; do
             echo "Building $svc..."
@@ -116,7 +134,7 @@ jobs:
 
   deploy-staging:
     needs: docker-build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/infra-base'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: staging
     steps:
